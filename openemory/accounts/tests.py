@@ -14,7 +14,7 @@ from eulfedora.server import Repository
 from eulfedora.util import parse_rdf, RequestFailed
 from eullocal.django.emory_ldap.backends import EmoryLDAPBackend
 
-from mock import Mock, patch, MagicMock
+from mock import Mock, patch, MagicMock, NonCallableMagicMock
 from rdflib.graph import Graph as RdfGraph, Literal, RDF, URIRef
 from sunburnt import sunburnt
 from taggit.models import Tag
@@ -31,6 +31,7 @@ from openemory.publication.models import Article
 from openemory.publication.views import ARTICLE_VIEW_FIELDS
 from openemory.rdfns import DC, FRBR, FOAF
 from openemory.util import solr_interface
+from openemory.testutil import mock_solr, mock_solr_results
 
 # re-use pdf fixture from publication app
 pdf_filename = os.path.join(settings.BASE_DIR, 'publication', 'fixtures', 'test.pdf')
@@ -284,8 +285,7 @@ class AccountViewsTest(TestCase):
     solr = solr_interface()
     mocksolr.Q.return_value = solr.Q()
 
-    #@patch('openemory.util.sunburnt.SolrInterface', mocksolr)
-    @patch('openemory.accounts.models.solr_interface', mocksolr)
+    @mock_solr
     @patch('openemory.accounts.views._get_profile_user')
     def test_profile(self, mockgetuser):
         profile_url = reverse('accounts:profile', kwargs={'username': 'nonuser'})
@@ -592,7 +592,7 @@ class AccountViewsTest(TestCase):
         self.assertContains(response, edit_url,
             msg_prefix='profile page edit link should display to admin user')
 
-    @patch('openemory.util.sunburnt.SolrInterface', mocksolr)
+    @mock_solr
     @patch('openemory.accounts.views.EmoryLDAPBackend')
     def test_profile_rdf(self, mockldap):
         # mock solr result 
@@ -600,7 +600,7 @@ class AccountViewsTest(TestCase):
             {'title': 'article one', 'created': 'today',
              'last_modified': 'today', 'pid': self.article.pid},
         ]
-        self.mocksolr.query.execute.return_value = result
+        self.mock_solr.query.execute.return_value.__iter__ = iter(result)
 
         profile_url = reverse('accounts:profile',
                 kwargs={'username': self.faculty_username})
@@ -731,6 +731,7 @@ class AccountViewsTest(TestCase):
         'biography': 'Went to school *somewhere*, studied something else **elsewhere**.',
     }
 
+    @mock_solr
     @patch.object(EmoryLDAPBackend, 'authenticate')
     @patch('openemory.accounts.views.EmoryLDAPBackend')
     def test_edit_profile(self, mockldap, mockauth):
@@ -915,6 +916,7 @@ class AccountViewsTest(TestCase):
         self.assertTrue(grant.project_title.startswith('The effect of subject cheesiness'))
         self.assertEqual(grant.year, 1492)
 
+    @mock_solr
     @patch.object(EmoryLDAPBackend, 'authenticate')
     def test_profile_photo(self, mockauth):
         # test display & edit profile photo
@@ -1001,8 +1003,7 @@ class AccountViewsTest(TestCase):
         self.assertNotContains(response, '<img class="profile"',
             msg_prefix='photo should not display on profile when user has removet it')
 
-
-                
+    @mock_solr
     @patch.object(EmoryLDAPBackend, 'authenticate')
     def test_login(self, mockauth):
         mockauth.return_value = None
@@ -1067,6 +1068,7 @@ class AccountViewsTest(TestCase):
         self.assertNotContains(response, '<input type=hidden name=next',
             msg_prefix='login-form on site index page should not specify a next url')
 
+    @mock_solr
     def test_tag_profile_GET(self):
         # add some tags to a user profile to fetch
         user = User.objects.get(username=self.faculty_username)
@@ -1105,7 +1107,6 @@ class AccountViewsTest(TestCase):
         self.assertEqual(expected, got,
                          'Expected %s but got %s for GET on %s (bogus username)' % \
                          (expected, got, bogus_tag_profile_url))
-
 
     def test_tag_profile_PUT(self):
         tag_profile_url = reverse('accounts:profile-tags',
@@ -1200,10 +1201,10 @@ class AccountViewsTest(TestCase):
         for tag in new_tags:
             self.assertTrue(user.get_profile().research_interests.filter(name=tag).exists())
 
-    @patch('openemory.accounts.models.solr_interface', mocksolr)
+    @mock_solr
     def test_profiles_by_interest(self):
         mock_article = {'pid': 'article:1', 'title': 'mock article'}
-        self.mocksolr.query.execute.return_value = [mock_article]
+        self.mock_solr.execute.return_value = mock_solr_results([mock_article])
         
         # add tags
         oa = 'open-access'
@@ -1214,6 +1215,7 @@ class AccountViewsTest(TestCase):
         prof_by_tag_url = reverse('accounts:by-interest', kwargs={'tag': oa})
         response = self.client.get(prof_by_tag_url)
         expected, got = 200, response.status_code
+        print response.content
         self.assertEqual(expected, got,
                          'Expected %s but got %s for %s' % \
                          (expected, got, prof_by_tag_url))
@@ -1358,7 +1360,7 @@ class AccountViewsTest(TestCase):
         self.assert_('MA' in degree_names)
         self.assert_('MS' in degree_names)
 
-    @patch('openemory.accounts.views.solr_interface', mocksolr)
+    @mock_solr
     def test_faculty_autocomplete(self):
         mock_result = [
             {'ad_name': 'Kohler, James J',
@@ -1368,8 +1370,7 @@ class AccountViewsTest(TestCase):
              'department_name': 'SOM: Peds: VA Lab Biochem'
              }
         ]
-        _old_result = self.mocksolr.query.execute.return_value 
-        self.mocksolr.query.execute.return_value = mock_result
+        self.mock_solr.execute.return_value = mock_solr_results(mock_result)
 
         faculty_autocomplete_url = reverse('accounts:faculty-autocomplete')
         # anonymous access restricted (faculty data)
@@ -1394,15 +1395,15 @@ class AccountViewsTest(TestCase):
                          'field %s should be included in the json return')
 
         # inspect solr query args
-        args, kwargs = self.mocksolr.query.filter.call_args
+        args, kwargs = self.mock_solr.filter.call_args
         self.assertEqual(EsdPerson.record_type, kwargs['record_type'],
                          'solr query should filter on record type for EsdPerson')
-        kwargs_list = [kw for a, kw in self.mocksolr.Q.call_args_list]
+        kwargs_list = [kw for a, kw in self.mock_solr.Q.call_args_list]
         self.assert_({'ad_name': 'kohl'} in kwargs_list,
                      'Solr query should look for ad_name exact match')
         self.assert_({'ad_name': 'kohl*'} in kwargs_list,
                      'Solr query should look for ad_name wildcard match')
-        sort_by = [args[0] for args, kwargs in self.mocksolr.query.sort_by.call_args_list]
+        sort_by = [args[0] for args, kwargs in self.mock_solr.sort_by.call_args_list]
         self.assertEqual('-score', sort_by[0],
                          'solr query should be sorted first by relevance')
         self.assertEqual('ad_name_sort', sort_by[1],
@@ -1411,7 +1412,7 @@ class AccountViewsTest(TestCase):
         # multi-term match with comma
         response = self.client.get(faculty_autocomplete_url,
                                    {'term': 'nodine, la'})
-        kwargs_list = [kw for a, kw in self.mocksolr.Q.call_args_list]
+        kwargs_list = [kw for a, kw in self.mock_solr.Q.call_args_list]
         self.assert_({'ad_name': 'nodine'} in kwargs_list,
                     'query should include first term exact match')
         self.assert_({'ad_name': 'nodine*'} in kwargs_list,
@@ -1421,10 +1422,7 @@ class AccountViewsTest(TestCase):
         self.assert_({'ad_name': 'la*'} in kwargs_list,
                     'query should include second term wildcard match')
 
-        # FIXME: test_profile fails without this restored (?!?)
-        self.mocksolr.query.execute.return_value = _old_result
-
-
+    @mock_solr
     def test_tag_object_GET(self):
         # create a bookmark to get
         bk, created = Bookmark.objects.get_or_create(user=self.faculty_user, pid='pid:test1')
@@ -1477,6 +1475,7 @@ class AccountViewsTest(TestCase):
                          (expected, got, tags_url))
 
 
+    @mock_solr
     @patch('openemory.accounts.views.Repository')
     def test_tag_object_PUT(self, mockrepo):
         # use mock repo to simulate an existing fedora object 
@@ -1540,6 +1539,7 @@ class AccountViewsTest(TestCase):
                          'Expected %s but got %s for PUT on %s (non-existent fedora object)' % \
                          (expected, got, tags_url))
 
+    @mock_solr
     def test_tag_autocomplete(self):
         # create some bookmarks with tags to search on
         bk1, new = Bookmark.objects.get_or_create(user=self.faculty_user, pid='test:1')
@@ -1597,6 +1597,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual('foo (2)', data[0]['label'],
             'display label includes correct term count')
 
+    @mock_solr
     def test_tags_in_sidebar(self):
         # create some bookmarks with tags to search on
         bk1, new = Bookmark.objects.get_or_create(user=self.faculty_user, pid='test:1')
@@ -1634,6 +1635,7 @@ class AccountViewsTest(TestCase):
         # test for tag-browse urls once they are added
         
 
+    @mock_solr
     @patch('openemory.accounts.views.articles_by_tag')
     def test_tagged_items(self, mockart_by_tag):
         # create some bookmarks with tags to search on
@@ -1675,7 +1677,7 @@ class AccountViewsTest(TestCase):
                          'Expected %s but got %s for %s (nonexistent tag)' % \
                          (expected, got, tagged_item_url))
 
-    @patch('openemory.accounts.views.solr_interface', mocksolr)
+    @mock_solr
     def test_list_departments(self):
         mockfacets = {
             'division_dept_id': [
@@ -1684,7 +1686,7 @@ class AccountViewsTest(TestCase):
                 ('School Of Medicine|UCX|Physiology|736526', 1),
                 ('University Libraries|U9X|University Libraries|921060', 2)
                 ]}
-        self.mocksolr.query.execute.return_value.facet_counts.facet_fields  = mockfacets
+        self.mock_solr.execute.return_value.facet_counts.facet_fields  = mockfacets
         
         list_dept_url = reverse('accounts:list-departments')
         response = self.client.get(list_dept_url)
@@ -1706,13 +1708,14 @@ class AccountViewsTest(TestCase):
                                               kwargs={'id': '921060'}))
 
         # inspect solr query args
-        self.mocksolr.query.assert_called_with(record_type=EsdPerson.record_type)
-        self.mocksolr.query.facet_by.assert_called_with('division_dept_id',
-                                                        limit=-1,
-                                                        sort='index') 
-        self.mocksolr.query.paginate.assert_called_with(rows=0) 
+        self.mock_solr.query.assert_any_call(record_type=EsdPerson.record_type)
+        self.mock_solr.facet_by.assert_any_call('division_dept_id',
+                                                limit=-1,
+                                                sort='index') 
+        self.mock_solr.paginate.assert_any_call(rows=0) 
 
-    @patch('openemory.accounts.views.solr_interface', mocksolr)
+    @mock_solr
+#    @patch('openemory.accounts.views.solr_interface', mocksolr)
     def test_view_department(self):
         faculty_esd = self.faculty_user.get_profile().esd_data()
 
@@ -1724,7 +1727,7 @@ class AccountViewsTest(TestCase):
              'last_name': faculty_esd.last_name,
              'directory_name': faculty_esd.directory_name }
             ]
-        self.mocksolr.query.execute.return_value = mockresult
+        self.mock_solr.execute.return_value = mock_solr_results(mockresult)
 #        people = solr.query(department_id=id).filter(record_type=EsdPerson.record_type) \
  #                .execute()
 
@@ -1754,7 +1757,7 @@ class AccountViewsTest(TestCase):
             msg_prefix='when department name matches division name, it should not be repeated')
 
         # non-existent department id should 404
-        self.mocksolr.query.execute.return_value = []
+        self.mock_solr.execute.return_value = []
         non_dept_url = reverse('accounts:department', kwargs={'id': '00000'})
         response = self.client.get(non_dept_url)
         expected, got = 404, response.status_code

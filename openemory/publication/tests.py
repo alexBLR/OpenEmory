@@ -37,6 +37,7 @@ from openemory.publication.models import NlmArticle, Article, ArticleMods,  \
      ArticleStatistics
 from openemory.publication import views as pubviews
 from openemory.rdfns import DC, BIBO, FRBR
+from openemory.testutil import mock_solr
 
 # credentials for shared fixture accounts
 from openemory.accounts.tests import USER_CREDENTIALS
@@ -703,7 +704,7 @@ class AuthorNameFormTest(TestCase):
         self.form.clean()
 
         
-
+@mock_solr
 class PublicationViewsTest(TestCase):
     multi_db = True
     fixtures =  ['testusers', 'users', 'esdpeople', 'teststats']
@@ -977,7 +978,6 @@ class PublicationViewsTest(TestCase):
             'Expected %s but returned %s for %s (logged in but not a site admin)' \
                 % (expected, got, ingest_url))
                     
-
     def test_pdf(self):
         pdf_url = reverse('publication:pdf', kwargs={'pid': 'bogus:not-a-real-pid'})
 
@@ -1490,31 +1490,20 @@ class PublicationViewsTest(TestCase):
         messages = [str(m) for m in response.context['messages']]
         self.assertEqual(messages[0], "Reviewed %s" % self.article.label)
         
-        
-    
-    @patch('openemory.publication.views.solr_interface')
-    def test_search_keyword(self, mock_solr_interface):
-        mocksolr = MagicMock()	# required for __getitem__ / pagination
-        mock_solr_interface.return_value = mocksolr
-        mocksolr.query.return_value = mocksolr
-        mocksolr.filter.return_value = mocksolr
-        mocksolr.field_limit.return_value = mocksolr
-        mocksolr.highlight.return_value = mocksolr
-        mocksolr.sort_by.return_value = mocksolr
-        mocksolr.facet_by.return_value = mocksolr
-        mocksolr.count.return_value = 0	   # count required for pagination
+    def test_search_keyword(self):
+        self.mock_solr.count.return_value = 0	   # count required for pagination
 
         articles = MagicMock()
-        mocksolr.execute.return_value = articles
-        mocksolr.__getitem__.return_value = articles
+        self.mock_solr.execute.return_value = articles
+        self.mock_solr.__getitem__.return_value = articles
 
         search_url = reverse('publication:search')
         response = self.client.get(search_url, {'keyword': 'cheese'})
 
-        mocksolr.query.assert_called_with('cheese')
-        mocksolr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
+        self.mock_solr.query.assert_any_call('cheese')
+        self.mock_solr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
                                            state='A')
-        mocksolr.execute.assert_called_once()
+        self.mock_solr.execute.assert_called_once()
 
         self.assert_(isinstance(response.context['results'], paginator.Page),
                      'paginated solr result should be set in response context')
@@ -1525,30 +1514,19 @@ class PublicationViewsTest(TestCase):
         # (empty result because execute return value magicmock is currently empty)
         self.assertContains(response, 'Your search term did not match any articles')
         
-
-    @patch('openemory.publication.views.solr_interface')
-    def test_search_phrase(self, mock_solr_interface):
-        mocksolr = MagicMock()	# required for __getitem__ / pagination
-        mock_solr_interface.return_value = mocksolr
-        mocksolr.query.return_value = mocksolr
-        mocksolr.filter.return_value = mocksolr
-        mocksolr.field_limit.return_value = mocksolr
-        mocksolr.highlight.return_value = mocksolr
-        mocksolr.sort_by.return_value = mocksolr
-        mocksolr.facet_by.return_value = mocksolr
-        mocksolr.count.return_value = 1	   # count required for pagination
+    def test_search_phrase(self):
+        self.mock_solr.count.return_value = 1	   # count required for pagination
         
-        articles = MagicMock()
-        mocksolr.execute.return_value = articles
-        mocksolr.__getitem__.return_value = articles
+        articles = self.mock_solr.execute.return_value
+        self.mock_solr.__getitem__.return_value = articles
 
         search_url = reverse('publication:search')
         response = self.client.get(search_url, {'keyword': 'cheese "sharp cheddar"'})
 
-        mocksolr.query.assert_called_with('cheese', 'sharp cheddar')
-        mocksolr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
+        self.mock_solr.query.assert_any_call('cheese', 'sharp cheddar')
+        self.mock_solr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
                                            state='A')
-        mocksolr.execute.assert_called_once()
+        self.mock_solr.execute.assert_called_once()
 
         self.assert_(isinstance(response.context['results'], paginator.Page),
                      'paginated solr result should be set in response context')
@@ -1558,14 +1536,9 @@ class PublicationViewsTest(TestCase):
         self.assertContains(response, 'Pages:',
             msg_prefix='pagination links should be present on search results page')
 
-    @patch('openemory.publication.views.solr_interface')
-    def test_suggest(self, mock_solr_interface):
-        mocksolr = mock_solr_interface.return_value
-        mocksolr.query.return_value = mocksolr
-        mocksolr.paginate.return_value = mocksolr
-        mocksolr.facet_by.return_value = mocksolr
+    def test_suggest(self):
         # mock-up of what sunburnt returns for facets & counts
-        mocksolr.execute.return_value.facet_counts.facet_fields = {
+        self.mock_solr.execute.return_value.facet_counts.facet_fields = {
             'funder_facet': [
                 ('Mellon Foundation', 3),
                 ('MNF', 2)
@@ -1582,19 +1555,18 @@ class PublicationViewsTest(TestCase):
         self.assertEqual('application/json', response['Content-Type'],
              'should return json on success')
         # inspect solr query/facet options
-        mocksolr.query.assert_called_once()
-        mocksolr.paginate.assert_called_with(rows=0)
-        mocksolr.facet_by.assert_called_with('funder_facet',
+        self.mock_solr.query.assert_called_once()
+        self.mock_solr.paginate.assert_called_with(rows=0)
+        self.mock_solr.facet_by.assert_called_with('funder_facet',
                                              prefix='M',
                                              sort='count',
                                              limit=15)
-        mocksolr.execute.assert_called_once()
+        self.mock_solr.execute.assert_called_once()
         # inspect the result
         data = json.loads(response.content)
         self.assertEqual('Mellon Foundation', data[0]['value'])
         self.assertEqual('Mellon Foundation (3)', data[0]['label'])
         self.assertEqual('MNF (2)', data[1]['label'])
-
 
 
     @patch('openemory.publication.views.solr_interface')
@@ -1832,21 +1804,12 @@ class PublicationViewsTest(TestCase):
         self.assertContains(response, '/images/cc/%s.png' % nlm.license.cc_type,
             msg_prefix='Creative Commons icon should be displayed for CC license')
         
-        
-    @patch('openemory.publication.views.solr_interface')
-    def test_review_list(self, mock_solr_interface):
+    def test_review_list(self):
         review_url = reverse('publication:review-list')
-        mocksolr = MagicMock()	# required for __getitem__ / pagination
-        mock_solr_interface.return_value = mocksolr
-        mocksolr.query.return_value = mocksolr
-        mocksolr.filter.return_value = mocksolr
-        mocksolr.sort_by.return_value = mocksolr
-        mocksolr.exclude.return_value = mocksolr
-        mocksolr.field_limit.return_value = mocksolr
-        mocksolr.count.return_value = 1	   # count required for pagination
+        self.mock_solr.count.return_value = 1	   # count required for pagination
         rval = [{'pid': 'test:1'}]
-        mocksolr.__getitem__.return_value = rval
-        mocksolr.execute.return_value = rval
+        self.mock_solr.__getitem__.return_value = rval
+        self.mock_solr.execute.__iter__.return_value = iter(rval)
 
         # not logged in
         response = self.client.get(review_url)
@@ -1885,16 +1848,16 @@ class PublicationViewsTest(TestCase):
         
 
         # check solr query args
-        mocksolr.query.assert_called()
+        self.mock_solr.query.assert_called()
         # should exclude records with any review date set
-        mocksolr.exclude.assert_called_with(review_date__any=True)
+        self.mock_solr.exclude.assert_called_with(review_date__any=True)
         # should filter on content model & active (published) records
-        mocksolr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
+        self.mock_solr.filter.assert_called_with(content_model=Article.ARTICLE_CONTENT_MODEL,
                                            state='A')
-        qargs, kwargs = mocksolr.sort_by.call_args
+        qargs, kwargs = self.mock_solr.sort_by.call_args
         self.assertEqual('created', qargs[0],
                          'solr results should be sort by record creation date')
-        mocksolr.field_limit.assert_called()
+        self.mock_solr.field_limit.assert_called()
 
     @patch('openemory.publication.views.solr_interface')
     def test_summary(self, mock_solr_interface):
@@ -1959,8 +1922,6 @@ class PublicationViewsTest(TestCase):
             'solr result for most downloaded items should be sorted by stat order')
         self.assertEqual('test:3', most_dl[2]['pid'],
             'solr result for most downloaded items should be sorted by stat order')
-
-        
 
 
 
