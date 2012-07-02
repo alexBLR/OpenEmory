@@ -564,3 +564,12 @@ class Announcement(models.Model):
         announcements = Announcement.objects.filter(active=True).\
         filter((Q(start__lt=now) | Q(start=None)) & (Q(end__gt=now) | Q(end=None)))
         return announcements
+
+
+class BoardCertification(models.Model):
+    ''':class:`~django.db.models.Model` board certification held by a user.'''
+    holder = models.ForeignKey(UserProfile, verbose_name='Certification holder')
+    name = models.CharField(verbose_name='Certification name', max_length=200)
+
+    def __unicode__(self):
+        return self.name

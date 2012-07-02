@@ -5,7 +5,7 @@ from django.db.models.fields import TextField
 from django.forms.widgets import Textarea
 from eullocal.django.emory_ldap.admin import EmoryLDAPUserProfileAdmin
 from openemory.accounts.models import Bookmark, Degree, Position, \
-        UserProfile, Announcement
+        UserProfile, Announcement, BoardCertification
 
 
 class BookmarkAdmin(admin.ModelAdmin):
@@ -76,3 +76,9 @@ class AnnouncementAdmin(admin.ModelAdmin):
     }
 
 admin.site.register(Announcement, AnnouncementAdmin)
+
+class BoardCertificationAdmin(admin.ModelAdmin):
+    # TODO: inline this in UserProfile admin
+    list_display = ('holder', 'name')
+
+admin.site.register(BoardCertification, BoardCertificationAdmin)
