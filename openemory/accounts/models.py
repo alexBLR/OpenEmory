@@ -566,7 +566,7 @@ class Announcement(models.Model):
         return announcements
 
 
-class BoardCertification(models.Model):
+class Certification(models.Model):
     ''':class:`~django.db.models.Model` board certification held by a user.'''
     holder = models.ForeignKey(UserProfile, verbose_name='Certification holder')
     name = models.CharField(verbose_name='Certification name', max_length=200)

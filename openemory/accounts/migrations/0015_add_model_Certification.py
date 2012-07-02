@@ -8,18 +8,18 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'BoardCertification'
-        db.create_table('accounts_boardcertification', (
+        # Adding model 'Certification'
+        db.create_table('accounts_certification', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('holder', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['accounts.UserProfile'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
         ))
-        db.send_create_signal('accounts', ['BoardCertification'])
+        db.send_create_signal('accounts', ['Certification'])
 
 
     def backwards(self, orm):
-        # Deleting model 'BoardCertification'
-        db.delete_table('accounts_boardcertification')
+        # Deleting model 'Certification'
+        db.delete_table('accounts_certification')
 
 
     models = {
@@ -31,17 +31,17 @@ class Migration(SchemaMigration):
             'message': ('django.db.models.fields.TextField', [], {'max_length': '500'}),
             'start': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
         },
-        'accounts.boardcertification': {
-            'Meta': {'object_name': 'BoardCertification'},
-            'holder': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['accounts.UserProfile']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'})
-        },
         'accounts.bookmark': {
             'Meta': {'object_name': 'Bookmark'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pid': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
+        'accounts.certification': {
+            'Meta': {'object_name': 'Certification'},
+            'holder': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['accounts.UserProfile']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
         'accounts.degree': {
             'Meta': {'object_name': 'Degree'},
