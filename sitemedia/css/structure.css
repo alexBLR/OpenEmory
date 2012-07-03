@@ -1305,6 +1305,15 @@ div.inner {
 .content.faculty .edit-profile .edit .interest-form input {
     width: 85%
 }
+
+.certification-form{
+    float: left;
+}
+
+.certification-form input{
+    width: 85%;
+}
+
 .content.faculty .edit-profile .edit textarea[name="biography"] 
 {
     min-height:216px;
