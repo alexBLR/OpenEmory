@@ -568,8 +568,8 @@ class Announcement(models.Model):
 
 class Certification(models.Model):
     ''':class:`~django.db.models.Model` board certification held by a user.'''
-    holder = models.ForeignKey(UserProfile, verbose_name='Certification holder')
-    name = models.CharField(verbose_name='Certification name', max_length=200)
+    holder = models.ForeignKey(UserProfile, verbose_name='Certification holder', blank=True)
+    name = models.CharField(verbose_name='Certification name', max_length=200, blank=True)
 
     def __unicode__(self):
         return self.name

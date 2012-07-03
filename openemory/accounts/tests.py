@@ -790,6 +790,12 @@ class AccountViewsTest(TestCase):
         '_POSITIONS-TOTAL_FORMS': 3,
         '_POSITIONS-0-name': 'Big Cheese, Association of Curd Curators',
         '_POSITIONS-1-name': 'Hole Editor, Journal of Swiss Studies',
+        #certification formset
+        '_CERTIFICATIONS-MAX_NUM_FORMS': '',
+        '_CERTIFICATIONS-INITIAL_FORMS': 0,
+        '_CERTIFICATIONS-TOTAL_FORMS':  2,
+        '_CERTIFICATIONS-0-name': 'Certificate of Awesomeness',
+        '_CERTIFICATIONS-1-name': 'Certificate of Bodaciousness',
         #external links
         '_EXTERNAL_LINKS-MAX_NUM_FORMS': '',
         '_EXTERNAL_LINKS-INITIAL_FORMS': 0,

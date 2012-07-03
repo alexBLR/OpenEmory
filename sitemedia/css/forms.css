@@ -819,7 +819,7 @@ input.submit:hover {
   bottom: -8px;
 }
 
-.addDegree, .addAuthor {
+.addDegree, .addAuthor, .addCertification {
     white-space: nowrap;
 }
 

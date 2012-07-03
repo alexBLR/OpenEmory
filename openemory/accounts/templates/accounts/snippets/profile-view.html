@@ -305,6 +305,65 @@
           </div><!-- /.info -->
           {# /degrees #}
 
+          {# certification #}
+          <div class="autowidth info">
+            <div class="readonly optional">
+              <h2>Certification Held: </h2>
+              <div class="clearfix"></div>
+              {% if author.get_profile.certification_set.count %}
+              <ul class="certificationsHeld">
+                {% for certification in author.get_profile.certification_set.all %}
+                <li>
+                    {{ certification.name }}
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+                <div class="emptyField">
+                  No certifications have been saved.
+                </div>
+              {% endif %}
+              {% include "accounts/snippets/profile-edit-link.html" %}
+            </div>
+            {# .editfield class added after formset initialization #}
+            {% if form %}
+            <div class="twoThirds certificationsList prepend-errors">
+              <h2>Certifications Held
+                 <a class="tip" title="Optionally list your certifications"></a>
+               </h2>
+               <div class="clearfix"></div>
+              {{ form.inlineformsets.certifications.management_form }}
+               <div class="clear"></div>
+              {% for certificationform in form.inlineformsets.certifications %}
+                {{ certificationform.name.errors }}
+              {% endfor %}
+              <ul class="certifications formWhole  altList">
+                {% for certificationform in form.inlineformsets.certifications %}
+                  <li class="{% cycle 'alternate' '' %}">
+                    {{ certificationform.id.errors }}{{ certificationform.id }}{# hidden id #}
+                    <div class="formThird {{ certificationform.name.css_classes }}">
+                      {{ certificationform.name }}
+                      <div class="clear"></div>
+                    </div>
+                    {% if forloop.counter <= form.inlineformsets.certifications.initial_form_count %}
+                      {{ certificationform.DELETE }}
+                    {% endif %}
+                  </li>
+                {% endfor %}
+                {% with certificationform=form.inlineformsets.certifications.empty_form %}
+                <li id="certificationform-template" style="display:none">
+                  {{ certificationform.id }}
+                    <div class="formThird">{{ certificationform.name }}</div>
+                </li>
+                {% endwith %}
+              </ul><!-- /.certifications -->
+            </div><!-- /.certificationsList -->
+            {% endif %}
+            <div class="clearfix"></div>
+          </div><!-- /.info -->
+          {# /certification #}
+
+
           <div class="clearfix"></div>
           {# researchInterests #}
           <div class="autowidth info">
@@ -438,6 +497,20 @@
       }
     });
 
+    $('ul.certifications li').formset({
+      prefix: "{{ form.inlineformsets.certifications.prefix}}",
+      addText: "+ Add Certification",
+      addCssClass: "addCertification",
+      deleteCssClass: "close",
+      formTemplate: $("#certificationform-template"),
+      added: function(row) {
+        update_alternates($('.certificationsList'))
+      },
+      removed: function(row) {
+      update_alternates($('.certificationsList'))
+      }
+    });
+
     $(".interest-form").formset({
       prefix: "{{ interest_formset.prefix }}",
       addText: "+ Add Interest",
@@ -454,6 +527,7 @@
     // initialized on  hidden vield
     $(".positionsList").addClass("editfield");
     $(".degreesList").addClass("editfield");
+    $(".certificationsList").addClass("editfield");
     $(".researchInterests.prepend-errors").addClass("editfield");
     $(".linkList").addClass("editfield");
 
