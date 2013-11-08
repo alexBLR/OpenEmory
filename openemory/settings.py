@@ -73,10 +73,12 @@ TEMPLATE_LOADERS = (
 TEMPLATE_CONTEXT_PROCESSORS = [
     # defaults:
     "django.contrib.auth.context_processors.auth",
+     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
-    "django.core.context_processors.request",
+    "django.core.context_processors.request", # may have to remove since it it not 1.5 default
     "django.core.context_processors.static",
+    "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
 
     # application-specific:
@@ -123,7 +125,6 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'django.contrib.humanize',
     'django.contrib.flatpages',
-    'django.contrib.localflavor',
 
     'eulfedora',
     'eulcommon.searchutil',
@@ -136,13 +137,14 @@ INSTALLED_APPS = (
     'openemory.publication',
     'openemory.harvest',
     'widget_tweaks',
+    'localflavor',
 )
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'openemory.accounts.backends.FacultyOrLocalAdminBackend',
-]
+)
 
 PID_ALIASES = {
     'oe-collection' : 'info:fedora/emory-control:OpenEmory-collection'

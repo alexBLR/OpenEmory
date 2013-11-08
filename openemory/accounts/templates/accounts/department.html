@@ -11,7 +11,7 @@
       <ul>
       {% for author in esdpeople %}
           <li>
-            <a class="department" href="{% url accounts:profile author.username %}">{% firstof author.directory_name author.first_name|add:" "|add:author.last_name author.ad_name author.username %}</a>
+            <a class="department" href="{% url 'accounts:profile' author.username %}">{% firstof author.directory_name author.first_name|add:" "|add:author.last_name author.ad_name author.username %}</a>
           </li> 
       {% endfor %}
       </ul>

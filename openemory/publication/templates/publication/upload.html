@@ -60,7 +60,7 @@
   <div class="bottom">
 
     <form enctype="multipart/form-data" method="post" 
-          action="{% url publication:ingest %}">{% csrf_token %}
+          action="{% url 'publication:ingest' %}">{% csrf_token %}
 
       <div class="assent-text">
         {% comment %}

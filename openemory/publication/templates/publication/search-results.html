@@ -29,7 +29,7 @@
 {% block sidebar-content %}
    {% if search_within %}
     <div class="search formWhole">
-      <form method="get" action="{% url publication:search %}">
+      <form method="get" action="{% url 'publication:search' %}">
         {{ search_within.within_keyword }}
         {# used to store the previous search terms #}
         {{ search_within.keyword.as_hidden }}

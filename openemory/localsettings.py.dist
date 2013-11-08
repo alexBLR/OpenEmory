@@ -127,6 +127,11 @@ RECAPTCHA_PRIVATE_KEY = ''
 RECAPTCHA_OPTIONS = {}
 
 
+# Hosts/domain names that are valid for this site; required if DEBUG is False
+# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = []
+
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error.

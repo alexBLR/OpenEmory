@@ -21,7 +21,7 @@
 <script type="text/javascript">
   $(document).ready(function() {
      $("input[name='emory-faculty']").autocomplete({
-     	source: "{% url accounts:faculty-autocomplete %}",
+     	source: "{% url 'accounts:faculty-autocomplete' %}",
         select: function(event, ui) {
           var row = $(".author-form:visible:last");  
           {% comment %}  Add a new author form row if:  
@@ -114,7 +114,7 @@
           added: function(row) {
              // enable autocomplete on the newly added input
              row.find("input[name^='funders-']").autocomplete({
-	             source: "{% url publication:suggest 'funder' %}",
+	             source: "{% url 'publication:suggest' 'funder' %}",
              });
           }
       });
@@ -159,7 +159,7 @@
           added: function(row) {
             // enable autocomplete on the newly added input
             row.find("input[name^='keywords']").autocomplete({
-              source: "{% url publication:suggest 'keyword' %}"
+              source: "{% url 'publication:suggest' 'keyword' %}"
             });  
           }
  
@@ -192,16 +192,16 @@
 
      {# configure autocomplete fields and corresponding urls #}
      $("input[name^='funders-']:visible").autocomplete({
-       source: "{% url publication:suggest 'funder' %}",
+       source: "{% url 'publication:suggest' 'funder' %}",
      });
      $("input[name^='keywords']:visible").autocomplete({
-       source: "{% url publication:suggest 'keyword' %}"
+       source: "{% url 'publication:suggest' 'keyword' %}"
      });
      $("input[name$='affiliation']").autocomplete({
-       source: "{% url publication:suggest 'author_affiliation' %}"
+       source: "{% url 'publication:suggest' 'author_affiliation' %}"
      });
      $("input[name='journal-title']").autocomplete({
-       source: "{% url publication:suggest 'journal_title' %}",
+       source: "{% url 'publication:suggest' 'journal_title' %}",
        select: function(event, ui) {
          $(this).val(ui.item.value);
          $("input[name='journal-issn']").val(ui.item.issn);
@@ -214,7 +214,7 @@
        }
      });
      $("input[name='journal-publisher']").autocomplete({
-       source: "{% url publication:suggest 'journal_publisher' %}",
+       source: "{% url 'publication:suggest' 'journal_publisher' %}",
        select: function(event, ui) {
          $(this).val(ui.item.value);
          {% if perms.publication.review_article %}
@@ -229,7 +229,7 @@
          var name = $("input[name='journal-publisher']").val();
          if (name) {
            $.ajax({
-             url: "{% url publication:publisher-details %}?name=" +
+             url: "{% url 'publication:publisher-details' %}?name=" +
                      encodeURI(name),
              success: function(data) {
                $('#id_journal-publisher').data('copyright-policy', data);

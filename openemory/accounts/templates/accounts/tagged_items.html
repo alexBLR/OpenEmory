@@ -16,7 +16,7 @@
   <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.editableTags.js"></script> 
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
-      $(".article-tags").editableTags({autocomplete: '{% url accounts:tags-autocomplete %}'});
+      $(".article-tags").editableTags({autocomplete: '{% url 'accounts:tags-autocomplete' %}'});
     });
   </script>
   {% endif %}

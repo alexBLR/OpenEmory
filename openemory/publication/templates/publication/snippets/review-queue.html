@@ -15,7 +15,7 @@
     <p>No unreviewed articles found.</p>
   {% endif %}
 
-  {% url publication:review-list as review_url %}
+  {% url 'publication:review-list' as review_url %}
   {% pagination_links results show_pages '' '' '' review_url %}
 
 </div>

@@ -17,6 +17,7 @@
 import datetime
 import json
 import logging
+from StringIO import StringIO
 from urllib import urlencode
 from rdflib import URIRef, Literal
 
@@ -26,7 +27,7 @@ from django.core.urlresolvers import reverse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.mail import mail_managers
 from django.db.models import Sum
-from django.http import Http404, HttpResponse, HttpResponseForbidden, \
+from django.http import Http404, HttpResponse,  StreamingHttpResponse, HttpResponseForbidden, \
     HttpResponseBadRequest, HttpResponsePermanentRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.context import RequestContext
@@ -616,7 +617,7 @@ def download_pdf(request, pid):
 
         try:
             content = obj.pdf_with_cover()
-            response = HttpResponse(content, mimetype='application/pdf')
+            response = StreamingHttpResponse(content, mimetype='application/pdf')
             # pdf+cover depends on metadata; if descMetadata changed more recently
             # than pdf, use the metadata last-modified date.
             #if obj.descMetadata.created > obj.pdf.created:
@@ -634,13 +635,14 @@ def download_pdf(request, pid):
         except:
             logger.warn('Exception on %s; returning without cover page' % obj.pid)
             # cover page failed - fall back to pdf without
-            # use generic raw datastream view from eulfedora
-            return raw_datastream(request, pid, Article.pdf.id, type=Article,
-                                  repo=repo, headers=extra_headers)
 
+            content = obj.pdf.get_chunked_content()
+            response = StreamingHttpResponse(content, mimetype='application/pdf')
+            for key, val in extra_headers.iteritems():
+                response[key] = val
+            return response
     except RequestFailed:
         raise Http404
-
 
 # permission ?
 def view_datastream(request, pid, dsid):

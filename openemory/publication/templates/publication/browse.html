@@ -21,7 +21,7 @@
 	
 	<div class="browse_nav">
 		<ul class="alpha">
-		<li><a href="{% url publication:browse mode|stringformat:"ss" %}">ALL</a></li>
+		<li><a href="{% url 'publication:browse' mode|stringformat:"ss" %}">ALL</a></li>
 		<li>|</li>
 		{% for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
 		<li><a href="?filter={{c}}">{{c}}</a></li>
@@ -34,7 +34,7 @@
 	<div class="browse_content">
 		<ul>
 			{% for name, count in facets %}
-			<li class="{% if facets|length >= 15 and mode != 'journal' %} left{% endif %}"><a href="{% url publication:search %}?{{mode}}={{name|urlencode}}">{{ name }}</a> ({{ count }})</li>
+			<li class="{% if facets|length >= 15 and mode != 'journal' %} left{% endif %}"><a href="{% url 'publication:search' %}?{{mode}}={{name|urlencode}}">{{ name }}</a> ({{ count }})</li>
 			{% endfor %}
 		</ul>
 		<br style="clear: left;" />

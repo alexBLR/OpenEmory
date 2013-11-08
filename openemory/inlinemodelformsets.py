@@ -25,7 +25,10 @@
 
 from django.forms.models import ModelFormMetaclass, ModelForm
 from django.utils.datastructures import MultiValueDictKeyError
+from django.contrib import messages
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ModelFormOptions(object):
     def __init__(self, options=None):
@@ -110,7 +113,10 @@ class ModelForm(ModelForm):
             for key, FormSet in self._forms.inlines.items():
                 fset = FormSet(self.data, self.files, prefix=self._get_formset_prefix(key),
                                instance=instance)
-                fset.save()
+                if fset.is_valid(): 
+                    fset.save()
+                else:
+                    messages.error(request, 'form is not valid') 
         return instance
 
     def has_changed(self, *args, **kwargs):

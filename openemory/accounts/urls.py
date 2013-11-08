@@ -14,7 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from openemory.accounts import views
 
 urlpatterns = patterns('openemory.accounts.views',
@@ -35,12 +35,12 @@ urlpatterns = patterns('openemory.accounts.views',
     url(r'^profiles/(?P<username>[a-zA-Z0-9]+)/documents/$', 'dashboard_documents', name='documents'),
     url(r'^profiles/(?P<username>[a-zA-Z0-9]+)/info/$', 'public_profile', name='dashboard-profile'),
     url(r'^profiles/(?P<username>[a-zA-Z0-9]+)/edit/$', 'public_profile', name='edit-profile'),
-                       
+
     url(r'^profiles/(?P<username>[a-zA-Z0-9]+)/data/$', 'rdf_profile', name='profile-data'),
     url(r'^profiles/(?P<username>[a-zA-Z0-9]+)/tags/$', views.profile_tags, name='profile-tags'),
     # profile-specific auto-complete views
     url(r'^profiles/degrees/(?P<mode>(institution|name))/autocomplete/$',
-        views.degree_autocomplete, name='degree-autocomplete'),                       
+        views.degree_autocomplete, name='degree-autocomplete'),
     url(r'^profiles/grants/autocomplete/$', views.grant_autocomplete,
         name='grant-autocomplete'),
     url(r'^profiles/interests/autocomplete/$', views.interests_autocomplete,

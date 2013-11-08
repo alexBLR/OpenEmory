@@ -15,9 +15,9 @@
 #   limitations under the License.
 
 from django.conf import settings
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 from django.contrib.sitemaps import FlatPageSitemap
 
 from openemory.accounts.sitemaps import ProfileSitemap
@@ -38,8 +38,8 @@ urlpatterns = patterns('',
     url(r'^indexdata/', include('eulfedora.indexdata.urls', namespace='indexdata')),
     # accounts app includes several top-level urls
     url(r'^', include('openemory.accounts.urls', namespace='accounts')),
-    url(r'^robots.txt$', direct_to_template,
-        {'template': 'robots.txt', 'mimetype': 'text/plain'}),
+    url(r'^robots.txt$',TemplateView.as_view(template_name='robots.txt')),
+
 )
 
 # xml sitemaps for search-engine discovere

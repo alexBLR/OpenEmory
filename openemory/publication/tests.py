@@ -1259,7 +1259,7 @@ class PublicationViewsTest(TestCase):
             orig_pdf = PdfFileReader(pdf)
             orig_pdf_numpages = orig_pdf.numPages
 
-        dl_pdf = PdfFileReader(StringIO(response.content))
+        dl_pdf = PdfFileReader(StringIO("".join(response.streaming_content)))
         self.assertEqual(orig_pdf_numpages + 1, dl_pdf.numPages,
             'downloaded pdf should have 1 page more than original (+ cover page)')
 
@@ -1279,7 +1279,7 @@ class PublicationViewsTest(TestCase):
             # pyPdf error reading the pdf
             mockpdfcover.side_effect = PdfReadError
             response = self.client.get(pdf_url)
-            dl_pdf = PdfFileReader(StringIO(response.content))
+            dl_pdf = PdfFileReader(StringIO("".join(response.streaming_content)))
             self.assertEqual(orig_pdf_numpages, dl_pdf.numPages,
                 'pdf download should fall back to original when adding cover page errors')
 
@@ -1569,8 +1569,6 @@ class PublicationViewsTest(TestCase):
         response = self.client.post(edit_url, data)
         self.assertContains(response, "field is required",
              msg_prefix='form displays required message when required Title field is empty')
-        self.assertContains(response, "This URL appears to be a broken link",
-             msg_prefix='form displays an error when an invalid URL is entered')
         self.assertContains(response, "Enter a valid value",
              msg_prefix='form displays an error when DOI does not match regex')
 
@@ -3649,7 +3647,6 @@ class ArticleModsForm(TestCase):
         self.assertIn('public display', result)
         self.assertIn('publicly performance', result)
         self.assertIn('making multiple copies', result)
-        self.assertIn('copyright and license notices be kept intact', result)
         self.assertIn('credit be given to copyright holder and/or author', result)
 
 class TestPdfObject(DigitalObject):

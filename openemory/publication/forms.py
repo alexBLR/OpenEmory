@@ -22,7 +22,7 @@ from django.contrib.auth.models import User
 from django.forms.widgets import DateInput
 from django.utils.datastructures import SortedDict
 from django.utils.safestring import mark_safe
-from django.contrib.localflavor.us.forms import USPhoneNumberField
+from localflavor.us.forms import USPhoneNumberField
 # collections.OrderedDict not available until Python 2.7
 import magic
 
@@ -448,7 +448,7 @@ class AuthorNameForm(BaseXmlObjectForm):
 
 class FinalVersionForm(BaseXmlObjectForm):
     form_label = 'Final Published Version (URL)'
-    url = forms.URLField(label="URL", verify_exists=True, required=False)
+    url = forms.URLField(label="URL", required=False)
     doi = forms.RegexField(label="DOI", regex='^doi:10\.\d+/.*', required=False,
                            help_text='Enter DOI (if any) in doi:10.##/## format',
                            widget=forms.TextInput(attrs={'class': 'text'}))
@@ -462,7 +462,7 @@ class FinalVersionForm(BaseXmlObjectForm):
 
 class OtherURLSForm(BaseXmlObjectForm):
     form_label = 'Other Versions (URL)'
-    url = forms.URLField(label='', verify_exists=True, required=False,
+    url = forms.URLField(label='', required=False,
                          widget=forms.TextInput(attrs={'class': 'text'}))
     class Meta:
         model = mods.Location

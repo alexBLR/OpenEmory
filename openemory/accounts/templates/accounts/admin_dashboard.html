@@ -47,10 +47,10 @@
     {# TODO: summary tab ? #}
     {#    <li><a href="{% url accounts:dashboard author %}" title="dashboard">Dashboard</a></li> #}
     {% if perms.harvest.view_harvestrecord %} 
-      <li><a href="{% url harvest:queue %}" title="harvest">Harvest Queue</a>
+      <li><a href="{% url 'harvest:queue' %}" title="harvest">Harvest Queue</a>
     {% endif %}
     {% if perms.publication.review_article %}
-      <li><a href="{% url publication:review-list %}" title="review">Review Queue</a></li>
+      <li><a href="{% url 'publication:review-list' %}" title="review">Review Queue</a></li>
     {% endif %}
       <li><a href="#db-admin" title="db-admin">Django Admin</a></li>
   </ul>
@@ -63,7 +63,7 @@
     are very problematic, and admin site is not easy to override to support ajax.
   {% endcomment %} 
   <div id="db-admin">
-    <iframe src="{% url admin:index %}" height="640px" width="100%" frameborder="0">
+    <iframe src="{% url 'admin:index' %}" height="640px" width="100%" frameborder="0">
     </iframe>
   </div>
 </div>
