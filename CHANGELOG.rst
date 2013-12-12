@@ -1,6 +1,6 @@
 Release 1.3.0 - Supplemental Materials
 --------------------------------------
-* Added Supplemental Materials to edit form
+* Added Supplemental Materials to edit form and article view
 * Fixed big with deleting repeating fields
 
 
