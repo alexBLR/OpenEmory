@@ -17,7 +17,6 @@ http://wilson.library.emory.edu:8080/jenkins/job/pidman-rest-client_1.1.x/lastSu
 python-dateutil
 xhtml2pdf
 python-magic
-django-tracking
 django-widget-tweaks==1.1.1
 pyasn1
 progressbar

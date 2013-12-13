@@ -135,6 +135,13 @@ Configure application settings by copying ``localsettings.py.dist`` to
 ``localsettings.py`` and editing for local settings (database, Fedora
 repository, Pid Manager, etc.).
 
+
+.. Note::
+  If you are installing the python packages manually, run this command to
+  install packages that need to be installed after the site is configured::
+
+    $ pip install -r pip-install-after-config.txt
+
 After configuring all settings, initialize the db with all needed
 tables and initial data using::
 
