@@ -20,7 +20,7 @@ python-magic
 django-widget-tweaks==1.1.1
 pyasn1
 progressbar
-pdfminer
+pdfminer==20110515
 django-localflavor
 
 
